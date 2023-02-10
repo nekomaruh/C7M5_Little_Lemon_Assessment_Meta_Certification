@@ -22,8 +22,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.littlelemon.ui.theme.LittleLemonTheme
 import io.ktor.client.HttpClient
+import io.ktor.client.call.*
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
@@ -79,8 +81,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun fetchMenu(): List<MenuItemNetwork> {
-        TODO("Retrieve data")
-        // data URL: https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/littleLemonSimpleMenu.json
+        val response: Map<String, MenuNetwork> = httpClient.get("https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/littleLemonSimpleMenu.json").body()
+        return response["menu"]?.menu ?: listOf()
     }
 
     private fun saveMenuToDatabase(menuItemsNetwork: List<MenuItemNetwork>) {
