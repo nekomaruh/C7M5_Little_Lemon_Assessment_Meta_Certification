@@ -16,8 +16,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -35,6 +33,10 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.text.toLowerCase
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private val httpClient = HttpClient(Android) {
@@ -53,12 +55,21 @@ class MainActivity : ComponentActivity() {
             LittleLemonTheme {
                 // add databaseMenuItems code here
                 val databaseMenuItems = database.menuItemDao()
+                    .getAll()
+                    .observeAsState(emptyList())
+                    .value
 
                 // add orderMenuItems variable here
-                val orderMenuItems = databaseMenuItems.getAll()
+                val orderMenuItems = remember {
+                    mutableStateOf(false)
+                }
 
                 // add menuItems variable here
-                val menuItems by orderMenuItems.observeAsState(emptyList())
+                val menuItems = if (orderMenuItems.value) {
+                    databaseMenuItems.sortedBy {
+                        it.title
+                    }
+                } else databaseMenuItems
 
                 Column(
                     modifier = Modifier
@@ -72,7 +83,7 @@ class MainActivity : ComponentActivity() {
 
                     // add Button code here
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = { orderMenuItems.value = true },
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .padding(bottom = 10.dp)
@@ -81,13 +92,19 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // add searchPhrase variable here
-                    val searchPhrase = ""
+                    val searchPhrase = remember {
+                        mutableStateOf("")
+                    }
 
                     // Add OutlinedTextField
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        value = searchPhrase.value,
+                        onValueChange = {
+                            searchPhrase.value = it
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 50.dp),
                         label = { Text(text = "Search") },
                         leadingIcon = {
                             Icon(
@@ -98,9 +115,15 @@ class MainActivity : ComponentActivity() {
                     )
 
                     // add is not empty check here
-                    if (searchPhrase.isEmpty()) {
-                        MenuItemsList(items = menuItems)
-                    }
+                    if (searchPhrase.value.isNotEmpty()) {
+                        MenuItemsList(items = menuItems.filter {
+                            it.title.lowercase(Locale.getDefault()).contains(
+                                searchPhrase.value.lowercase(
+                                    Locale.getDefault()
+                                )
+                            )
+                        })
+                    } else MenuItemsList(items = menuItems)
 
                 }
             }
