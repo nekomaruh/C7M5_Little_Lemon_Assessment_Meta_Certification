@@ -35,6 +35,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.text.toLowerCase
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private val httpClient = HttpClient(Android) {
@@ -96,7 +98,7 @@ class MainActivity : ComponentActivity() {
 
                     // Add OutlinedTextField
                     OutlinedTextField(
-                        value = "",
+                        value = searchPhrase.value,
                         onValueChange = {
                             searchPhrase.value = it
                         },
@@ -113,7 +115,15 @@ class MainActivity : ComponentActivity() {
                     )
 
                     // add is not empty check here
-                    MenuItemsList(items = menuItems)
+                    if (searchPhrase.value.isNotEmpty()) {
+                        MenuItemsList(items = menuItems.filter {
+                            it.title.lowercase(Locale.getDefault()).contains(
+                                searchPhrase.value.lowercase(
+                                    Locale.getDefault()
+                                )
+                            )
+                        })
+                    } else MenuItemsList(items = menuItems)
 
                 }
             }
