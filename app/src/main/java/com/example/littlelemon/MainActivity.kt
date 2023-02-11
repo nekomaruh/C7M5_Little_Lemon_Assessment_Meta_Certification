@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,13 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Room
 import com.example.littlelemon.ui.theme.LittleLemonTheme
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.engine.android.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.http.ContentType
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -49,13 +52,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             LittleLemonTheme {
                 // add databaseMenuItems code here
-                val databaseMenuItems = database.menuItemDao().getAll()
+                val databaseMenuItems = database.menuItemDao()
 
                 // add orderMenuItems variable here
-                val orderMenuItems by databaseMenuItems.observeAsState(emptyList())
+                val orderMenuItems = databaseMenuItems.getAll()
 
                 // add menuItems variable here
-                MenuItemsList(items = orderMenuItems)
+                val menuItems by orderMenuItems.observeAsState(emptyList())
 
                 Column(
                     modifier = Modifier
@@ -68,12 +71,37 @@ class MainActivity : ComponentActivity() {
                     )
 
                     // add Button code here
+                    Button(
+                        onClick = { /*TODO*/ },
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 10.dp)
+                    ) {
+                        Text(text = "Tap to Order By Name")
+                    }
 
                     // add searchPhrase variable here
+                    val searchPhrase = ""
 
                     // Add OutlinedTextField
+                    OutlinedTextField(
+                        value = "",
+                        onValueChange = {},
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        label = { Text(text = "Search") },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_baseline_search_24),
+                                contentDescription = ""
+                            )
+                        }
+                    )
 
                     // add is not empty check here
+                    if (searchPhrase.isEmpty()) {
+                        MenuItemsList(items = menuItems)
+                    }
+
                 }
             }
         }
@@ -88,8 +116,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun fetchMenu(): List<MenuItemNetwork> {
-        val response: Map<String, MenuNetwork> = httpClient.get("https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/littleLemonSimpleMenu.json").body()
-        return response["menu"]?.menu ?: listOf()
+        val response: MenuNetwork =
+            httpClient.get("https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/littleLemonSimpleMenu.json")
+                .body()
+        return response.menu
     }
 
     private fun saveMenuToDatabase(menuItemsNetwork: List<MenuItemNetwork>) {
