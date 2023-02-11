@@ -90,13 +90,19 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // add searchPhrase variable here
-                    val searchPhrase = ""
+                    val searchPhrase = remember {
+                        mutableStateOf("")
+                    }
 
                     // Add OutlinedTextField
                     OutlinedTextField(
                         value = "",
-                        onValueChange = {},
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        onValueChange = {
+                            searchPhrase.value = it
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 50.dp),
                         label = { Text(text = "Search") },
                         leadingIcon = {
                             Icon(
@@ -107,9 +113,7 @@ class MainActivity : ComponentActivity() {
                     )
 
                     // add is not empty check here
-                    if (searchPhrase.isEmpty()) {
-                        MenuItemsList(items = menuItems)
-                    }
+                    MenuItemsList(items = menuItems)
 
                 }
             }
